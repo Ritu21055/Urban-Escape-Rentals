@@ -1,0 +1,141 @@
+<% layout('layouts/boilerplate') %>
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Complete Your Booking</h3>
+                </div>
+                <div class="card-body">
+                    <form action="/payment/process" method="POST" id="paymentForm">
+                        <input type="hidden" name="listingId" value="<%= listing._id %>">
+                        <input type="hidden" name="amount" value="<%= listing.price %>">
+                        
+                        <!-- Booking Details -->
+                        <div class="mb-4">
+                            <h4>Booking Details</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="checkIn" class="form-label">Check-in Date</label>
+                                        <input type="date" class="form-control" id="checkIn" name="checkIn" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="checkOut" class="form-label">Check-out Date</label>
+                                        <input type="date" class="form-control" id="checkOut" name="checkOut" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="guests" class="form-label">Number of Guests</label>
+                                <input type="number" class="form-control" id="guests" name="guests" min="1" required>
+                            </div>
+                        </div>
+
+                        <!-- Payment Method Selection -->
+                        <div class="mb-4">
+                            <h4>Choose Payment Method</h4>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="bank" value="bank_transfer" checked>
+                                <label class="form-check-label" for="bank">Bank Transfer</label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="upi" value="upi">
+                                <label class="form-check-label" for="upi">UPI Payment</label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="cash" value="cash">
+                                <label class="form-check-label" for="cash">Cash Payment</label>
+                            </div>
+                        </div>
+
+                        <!-- Bank Transfer Details -->
+                        <div id="bankDetails" class="payment-details mb-4">
+                            <h5>Bank Transfer Details</h5>
+                            <div class="mb-3">
+                                <label for="bankName" class="form-label">Bank Name</label>
+                                <input type="text" class="form-control" id="bankName" name="bankName">
+                            </div>
+                            <div class="mb-3">
+                                <label for="accountNumber" class="form-label">Account Number</label>
+                                <input type="text" class="form-control" id="accountNumber" name="accountNumber">
+                            </div>
+                            <div class="mb-3">
+                                <label for="ifscCode" class="form-label">IFSC Code</label>
+                                <input type="text" class="form-control" id="ifscCode" name="ifscCode">
+                            </div>
+                        </div>
+
+                        <!-- UPI Details -->
+                        <div id="upiDetails" class="payment-details mb-4" style="display: none;">
+                            <h5>UPI Payment Details</h5>
+                            <div class="mb-3">
+                                <label for="upiId" class="form-label">UPI ID</label>
+                                <input type="text" class="form-control" id="upiId" name="upiId">
+                            </div>
+                        </div>
+
+                        <!-- Cash Payment Details -->
+                        <div id="cashDetails" class="payment-details mb-4" style="display: none;">
+                            <h5>Cash Payment Instructions</h5>
+                            <p>Please visit our office to complete the payment:</p>
+                            <p><strong>Address:</strong> 123 Business Hub, 4th Floor, Cyber City, Gurugram, Haryana - 122002, India</p>
+                            <p><strong>Timing:</strong> 9 AM - 6 PM (Mon-Sat)</p>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-credit-card"></i> Submit Payment Details
+                            </button>
+                            <a href="/data" class="btn btn-secondary btn-lg ms-2">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Show/hide payment details based on selected method
+    document.querySelectorAll('input[name="paymentMethod"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            document.querySelectorAll('.payment-details').forEach(details => {
+                details.style.display = 'none';
+            });
+            
+            if (this.value === 'bank_transfer') {
+                document.getElementById('bankDetails').style.display = 'block';
+            } else if (this.value === 'upi') {
+                document.getElementById('upiDetails').style.display = 'block';
+            } else if (this.value === 'cash') {
+                document.getElementById('cashDetails').style.display = 'block';
+            }
+        });
+    });
+
+    // Initialize with bank transfer details visible
+    document.getElementById('bankDetails').style.display = 'block';
+</script>
+
+<style>
+.payment-option {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.payment-details {
+    margin-top: 10px;
+}
+
+.qr-code {
+    border: 1px dashed #ccc;
+    border-radius: 8px;
+}
+</style>

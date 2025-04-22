@@ -1,0 +1,70 @@
+<%- include('../includes/header') %>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>All Listings</h1>
+        <a href="/data/new" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Create New Listing
+        </a>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        <% if (listings && listings.length > 0) { %>
+            <% listings.forEach(listing => { %>
+                <div class="col">
+                    <div class="card h-100">
+                        <% if (listing.image && listing.image.url) { %>
+                            <img src="<%= listing.image.url %>" class="card-img-top" alt="<%= listing.title %>" style="height: 200px; object-fit: cover;">
+                        <% } else if (listing.image) { %>
+                            <img src="<%= listing.image %>" class="card-img-top" alt="<%= listing.title %>" style="height: 200px; object-fit: cover;">
+                        <% } else { %>
+                            <img src="/images/default-property.jpg" class="card-img-top" alt="Default Property Image" style="height: 200px; object-fit: cover;">
+                        <% } %>
+                        <div class="card-body">
+                            <h5 class="card-title"><%= listing.title %></h5>
+                            <p class="text-muted">
+                                <i class="fas fa-map-marker-alt"></i> <%= listing.location %>, <%= listing.country %>
+                            </p>
+                            <p class="card-text">
+                                <strong>₹<%= listing.price ? listing.price.toLocaleString('en-IN') : '0' %></strong> per night
+                            </p>
+                            <p class="card-text description"><%= listing.description %></p>
+                            <div class="d-flex gap-2">
+                                <a href="/data/<%= listing.index %>" class="btn btn-primary flex-grow-1">View Details</a>
+                                <% if (typeof currentUser !== 'undefined' && currentUser && listing.owner === currentUser.username) { %>
+                                    <a href="/data/<%= listing.index %>/edit" class="btn btn-outline-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form action="/data/<%= listing.index %>?_method=DELETE" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Are you sure you want to delete this listing?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <% }); %>
+        <% } else { %>
+            <div class="col-12">
+                <div class="alert alert-info">
+                    No listings found.
+                </div>
+            </div>
+        <% } %>
+    </div>
+</div>
+
+<style>
+.description {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 4.5em;
+}
+</style>
+
+<%- include('../includes/footer') %> 

@@ -1,0 +1,82 @@
+<%- include('../includes/header') %>
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="mb-0">Edit Listing</h2>
+                </div>
+                <div class="card-body">
+                    <form action="/data/<%= encodeURIComponent(listing.title) %>?_method=PUT" method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Title</label>
+                            <input type="text" class="form-control" id="title" name="title" value="<%= listing.title %>" required>
+                            <div class="invalid-feedback">Please provide a title for the listing.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="price" class="form-label">Price (in INR)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="price" name="price" value="<%= listing.price || 0 %>" min="0" step="0.01" required>
+                            </div>
+                            <div class="invalid-feedback">Please provide a valid price.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="location" class="form-label">Location</label>
+                            <input type="text" class="form-control" id="location" name="location" value="<%= listing.location %>" required>
+                            <div class="invalid-feedback">Please provide the location.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="country" class="form-label">Country</label>
+                            <input type="text" class="form-control" id="country" name="country" value="<%= listing.country %>" required>
+                            <div class="invalid-feedback">Please provide the country.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="4" required><%= listing.description %></textarea>
+                            <div class="invalid-feedback">Please provide a description.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="image" class="form-label">Property Image</label>
+                            <div class="mb-2">
+                                <img src="<%= listing.image.url %>" alt="Current image" class="img-thumbnail" style="max-height: 200px;">
+                            </div>
+                            <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                            <div class="form-text">Upload a new image to replace the current one (optional).</div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Update Listing</button>
+                            <a href="/data/<%= encodeURIComponent(listing.title) %>" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Form validation
+(function () {
+    'use strict'
+    const forms = document.querySelectorAll('.needs-validation')
+    Array.from(forms).forEach(form => {
+        form.addEventListener('submit', event => {
+            if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+            }
+            form.classList.add('was-validated')
+        }, false)
+    })
+})()
+</script>
+
+<%- include('../includes/footer') %> 

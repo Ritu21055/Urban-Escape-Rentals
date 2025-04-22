@@ -1,0 +1,44 @@
+<% layout('layouts/boilerplate') %>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle text-success" style="font-size: 5rem;"></i>
+                    </div>
+                    <h2 class="mb-4">Payment Successful!</h2>
+                    <% if (success && success.length > 0) { %>
+                        <div class="alert alert-success mb-4">
+                            <h4 class="alert-heading">Booking Confirmed!</h4>
+                            <p><%= success[0] %></p>
+                        </div>
+                    <% } else { %>
+                        <div class="alert alert-success mb-4">
+                            <h4 class="alert-heading">Booking Confirmed!</h4>
+                            <p>Your payment has been processed successfully and your booking is now confirmed.</p>
+                        </div>
+                    <% } %>
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Next Steps</h5>
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-envelope text-primary me-2"></i> You will receive a confirmation email shortly</li>
+                                <li class="mb-2"><i class="fas fa-calendar-check text-primary me-2"></i> Your booking details are saved in your account</li>
+                                <li><i class="fas fa-headset text-primary me-2"></i> Our support team is available 24/7 if you need assistance</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a href="/data" class="btn btn-primary btn-lg">
+                            <i class="fas fa-home me-2"></i> Return to Home
+                        </a>
+                        <a href="/bookings" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-calendar-alt me-2"></i> View My Bookings
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

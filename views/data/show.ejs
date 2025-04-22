@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= listing.title %></title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- Razorpay SDK -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+    <%- include('../partials/navbar') %>
+
+    <div class="container mt-4">
+        <!-- Property Details Section -->
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <% if (listing.image && listing.image.url) { %>
+                        <img src="<%= listing.image.url %>" class="card-img-top" alt="<%= listing.title %>" style="height: 400px; object-fit: cover;">
+                    <% } else if (listing.image) { %>
+                        <img src="<%= listing.image %>" class="card-img-top" alt="<%= listing.title %>" style="height: 400px; object-fit: cover;">
+                    <% } else { %>
+                        <img src="/images/default-property.jpg" class="card-img-top" alt="Default Property Image" style="height: 400px; object-fit: cover;">
+                    <% } %>
+                    <div class="card-body">
+                        <h2 class="card-title"><%= listing.title %></h2>
+                        <p class="card-text">
+                            <i class="fas fa-map-marker-alt"></i> <%= listing.location %>, <%= listing.country %>
+                        </p>
+                        <h4 class="card-text">₹<%= listing.price %> per night</h4>
+                        <p class="card-text"><%= listing.description %></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Booking Section -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="card-title">Book this place</h3>
+                        <form id="bookingForm" action="/payment/process" method="POST">
+                            <input type="hidden" name="listingId" value="<%= listing._id || listing.id %>">
+                            <input type="hidden" name="listingTitle" value="<%= listing.title %>">
+                            <input type="hidden" name="listingPrice" value="<%= listing.price %>">
+                            
+                            <div class="mb-3">
+                                <label for="checkIn" class="form-label">Check-in Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="checkIn" name="checkIn" required>
+                                <div class="invalid-feedback">Please select a check-in date</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="checkOut" class="form-label">Check-out Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="checkOut" name="checkOut" required>
+                                <div class="invalid-feedback">Please select a check-out date</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="guests" class="form-label">Number of Guests <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="guests" name="guests" min="1" max="<%= listing.maxGuests || 10 %>" required>
+                                <div class="invalid-feedback">Please enter a valid number of guests</div>
+                            </div>
+
+                            <!-- Price Details Card -->
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title">Price Details</h5>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Nights:</span>
+                                        <span id="numberOfNights">0</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Total Amount:</span>
+                                        <span id="totalAmount">₹0</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Payment Method Selection -->
+                            <div class="mb-3">
+                                <label class="form-label">Payment Method <span class="text-danger">*</span></label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="paymentMethod" id="bank" value="bank_transfer" checked>
+                                    <label class="form-check-label" for="bank">Bank Transfer</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="paymentMethod" id="upi" value="upi">
+                                    <label class="form-check-label" for="upi">UPI Payment</label>
+                                </div>
+                            </div>
+
+                            <!-- Bank Transfer Details -->
+                            <div id="bankDetails" class="payment-details mb-3">
+                                <div class="mb-3">
+                                    <label for="bankName" class="form-label">Bank Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="bankName" name="bankName">
+                                    <div class="invalid-feedback">Please enter bank name</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="accountNumber" class="form-label">Account Number <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="accountNumber" name="accountNumber">
+                                    <div class="invalid-feedback">Please enter account number</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="ifscCode" class="form-label">IFSC Code <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="ifscCode" name="ifscCode">
+                                    <div class="invalid-feedback">Please enter IFSC code</div>
+                                </div>
+                            </div>
+
+                            <!-- UPI Details -->
+                            <div id="upiDetails" class="payment-details mb-3" style="display: none;">
+                                <div class="mb-3">
+                                    <label for="upiId" class="form-label">UPI ID <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="upiId" name="upiId">
+                                    <div class="invalid-feedback">Please enter UPI ID</div>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100">Proceed to Payment</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reviews Section -->
+        <div class="row mt-4">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="card-title">Reviews</h3>
+                        <% if(currentUser) { %>
+                            <form action="/data/<%= listing.index %>/reviews" method="POST" class="mb-3">
+                                <div class="mb-3">
+                                    <label for="rating" class="form-label">Rating</label>
+                                    <div class="stars">
+                                        <% for(let i = 1; i <= 5; i++) { %>
+                                            <i class="far fa-star star-rating" data-rating="<%= i %>"></i>
+                                        <% } %>
+                                    </div>
+                                    <input type="hidden" name="rating" id="rating" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="comment" class="form-label">Comment</label>
+                                    <textarea class="form-control" name="comment" id="comment" rows="3" required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-success">Submit Review</button>
+                            </form>
+                        <% } %>
+
+                        <div class="reviews-container">
+                            <% if(listing.reviews && listing.reviews.length > 0) { %>
+                                <% for(let review of listing.reviews) { %>
+                                    <div class="card mb-3">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between">
+                                                <h5 class="card-title">
+                                                    <%= review.reviewer || 'Anonymous' %>
+                                                </h5>
+                                                <div class="stars">
+                                                    <% for(let i = 1; i <= 5; i++) { %>
+                                                        <i class="fas fa-star <%= i <= (review.rating || 0) ? 'text-warning' : 'text-secondary' %>"></i>
+                                                    <% } %>
+                                                </div>
+                                            </div>
+                                            <p class="card-text"><%= review.comment || 'No comment provided' %></p>
+                                            <% if(currentUser && review.reviewer === currentUser.username) { %>
+                                                <form action="/data/<%= listing.index %>/reviews/<%= review.id %>?_method=DELETE" method="POST">
+                                                    <button class="btn btn-sm btn-danger">Delete</button>
+                                                </form>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                <% } %>
+                            <% } else { %>
+                                <p class="text-muted">No reviews yet. Be the first to review!</p>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Set minimum date for check-in to today
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('checkIn').min = today;
+
+        // Update check-out minimum date based on check-in selection
+        document.getElementById('checkIn').addEventListener('change', function() {
+            const checkInDate = new Date(this.value);
+            const nextDay = new Date(checkInDate);
+            nextDay.setDate(nextDay.getDate() + 1);
+            document.getElementById('checkOut').min = nextDay.toISOString().split('T')[0];
+        });
+
+        // Calculate total amount when dates change
+        function calculateTotal() {
+            const checkIn = new Date(document.getElementById('checkIn').value);
+            const checkOut = new Date(document.getElementById('checkOut').value);
+            const price = Number('<%= listing.price %>');
+            
+            if (checkIn && checkOut && !isNaN(checkIn.getTime()) && !isNaN(checkOut.getTime())) {
+                const nights = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+                const total = nights * price;
+                
+                document.getElementById('numberOfNights').textContent = nights;
+                document.getElementById('totalAmount').textContent = `₹${total}`;
+            }
+        }
+
+        document.getElementById('checkIn').addEventListener('change', calculateTotal);
+        document.getElementById('checkOut').addEventListener('change', calculateTotal);
+
+        document.getElementById('bookingForm').addEventListener('submit', function(event) {
+            console.log('Form submission started');
+            ev
+            let isValid = true;
+            let errorMessage = '';
+            
+            // Reset all validation states
+            document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            
+            // Validate check-in and check-out dates
+            const checkIn = document.getElementById('checkIn');
+            const checkOut = document.getElementById('checkOut');
+            if (!checkIn.value) {
+                checkIn.classList.add('is-invalid');
+                errorMessage += 'Please select a check-in date\n';
+                isValid = false;
+            }
+            if (!checkOut.value) {
+                checkOut.classList.add('is-invalid');
+                errorMessage += 'Please select a check-out date\n';
+                isValid = false;
+            }
+
+            // Validate number of guests
+            const guests = document.getElementById('guests');
+            if (!guests.value || guests.value < 1) {
+                guests.classList.add('is-invalid');
+                errorMessage += 'Please enter a valid number of guests\n';
+                isValid = false;
+            }
+
+            // Validate payment method
+            const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked');
+            if (!paymentMethod) {
+                errorMessage += 'Please select a payment method\n';
+                isValid = false;
+            }
+
+            // Validate payment details based on selected method
+            if (paymentMethod && paymentMethod.value === 'bank_transfer') {
+                const bankName = document.getElementById('bankName');
+                const accountNumber = document.getElementById('accountNumber');
+                const ifscCode = document.getElementById('ifscCode');
+                
+                if (!bankName.value) {
+                    bankName.classList.add('is-invalid');
+                    errorMessage += 'Please enter bank name\n';
+                    isValid = false;
+                }
+                if (!accountNumber.value) {
+                    accountNumber.classList.add('is-invalid');
+                    errorMessage += 'Please enter account number\n';
+                    isValid = false;
+                }
+                if (!ifscCode.value) {
+                    ifscCode.classList.add('is-invalid');
+                    errorMessage += 'Please enter IFSC code\n';
+                    isValid = false;
+                }
+            } else if (paymentMethod && paymentMethod.value === 'upi') {
+                const upiId = document.getElementById('upiId');
+                if (!upiId.value) {
+                    upiId.classList.add('is-invalid');
+                    errorMessage += 'Please enter UPI ID\n';
+                    isValid = false;
+                }
+            }
+
+            if (!isValid) {
+                alert('Please fix the following errors:\n\n' + errorMessage);
+                return false;
+            }
+
+            console.log('Form validation passed, submitting form...');
+            // If validation passes, submit the form
+            this.submit();
+        });
+
+        // Show/hide payment details based on selected payment method
+        document.querySelectorAll('input[name="paymentMethod"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                console.log('Payment method changed:', this.value);
+                const bankDetails = document.getElementById('bankDetails');
+                const upiDetails = document.getElementById('upiDetails');
+                
+                if (this.value === 'bank_transfer') {
+                    bankDetails.style.display = 'block';
+                    upiDetails.style.display = 'none';
+                    // Clear UPI field and remove validation
+                    document.getElementById('upiId').value = '';
+                    document.getElementById('upiId').classList.remove('is-invalid');
+                } else if (this.value === 'upi') {
+                    bankDetails.style.display = 'none';
+                    upiDetails.style.display = 'block';
+                    // Clear bank fields and remove validation
+                    document.getElementById('bankName').value = '';
+                    document.getElementById('accountNumber').value = '';
+                    document.getElementById('ifscCode').value = '';
+                    document.getElementById('bankName').classList.remove('is-invalid');
+                    document.getElementById('accountNumber').classList.remove('is-invalid');
+                    document.getElementById('ifscCode').classList.remove('is-invalid');
+                }
+            });
+        });
+
+        // Add input event listeners to clear validation errors
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', function() {
+                this.classList.remove('is-invalid');
+            });
+        });
+
+        // Star rating functionality
+        document.querySelectorAll('.star-rating').forEach(star => {
+            star.addEventListener('click', function() {
+                const rating = this.dataset.rating;
+                document.getElementById('rating').value = rating;
+                
+                document.querySelectorAll('.star-rating').forEach((s, index) => {
+                    if(index < rating) {
+                        s.classList.remove('far');
+                        s.classList.add('fas', 'text-warning');
+                    } else {
+                        s.classList.remove('fas', 'text-warning');
+                        s.classList.add('far');
+                    }
+                });
+            });
+        });
+    </script>
+
+    <%- include('../partials/footer') %>
+</body>
+</html>
